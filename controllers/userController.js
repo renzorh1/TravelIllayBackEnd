@@ -102,7 +102,7 @@ async function getUser(req, res) {
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
-
+  
     res.status(200).json(user);
   } catch (error) {
     console.error('Error al obtener el usuario:', error);
