@@ -1,17 +1,16 @@
+require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize('TravelIllay', 'sa', '12345678', {
-  host: 'DESKTOP-4HBA31A\\SQLEXPRESS',  //CAMBIAR A TU HOST (las comillas de la forma como están en 2)
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
   dialect: 'mssql',
-  port: 1433,
+  port: process.env.DB_PORT,
   dialectOptions: {
     options: {
-      encrypt: false,
+      encrypt: true, // Asegúrate de que está configurado a true para Azure
+      trustServerCertificate: false // Ajusta según las necesidades de seguridad
     }
   }
 });
 
 module.exports = sequelize;
-
-
-  
