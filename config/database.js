@@ -7,10 +7,16 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
   port: process.env.DB_PORT,
   dialectOptions: {
     options: {
-      encrypt: true, // Asegúrate de que está configurado a true para Azure
-      trustServerCertificate: false // Ajusta según las necesidades de seguridad
+      encrypt: true,
+      trustServerCertificate: false
     }
-  }
+  },
+  logging: console.log // Esto mostrará las consultas SQL en la consola
 });
+
+// Prueba la conexión
+sequelize.authenticate()
+  .then(() => console.log('Conexión a la base de datos establecida correctamente.'))
+  .catch(err => console.error('No se pudo conectar a la base de datos:', err));
 
 module.exports = sequelize;
