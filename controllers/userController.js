@@ -13,15 +13,18 @@ const registerUser = async (req, res) => {
         inicio: "00:00",
         fin: "00:00"
       },
-      notificaciones_activadas: false
+      notificaciones_activadas: false,
+      idioma_preferido: "es" // Añadir el idioma preferido
     };
+
+    const preferenciasJSON = JSON.stringify(preferencias);
 
     const newUser = await Usuario.create({
       Nombre,
       Celular,
       Correo,
       Contrasena: hashedPassword,
-      Preferencias: preferencias
+      Preferencias: preferenciasJSON
     });
 
     res.status(201).json({ message: "Usuario registrado exitosamente", newUser });
