@@ -8,7 +8,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
   dialectOptions: {
     options: {
       encrypt: true,
-      trustServerCertificate: false
+      trustServerCertificate: true
     }
   },
   logging: console.log // Esto mostrará las consultas SQL en la consola
@@ -20,3 +20,5 @@ sequelize.authenticate()
   .catch(err => console.error('No se pudo conectar a la base de datos:', err));
 
 module.exports = sequelize;
+
+
