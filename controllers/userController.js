@@ -5,20 +5,19 @@ const registerUser = async (req, res) => {
   try {
     const { Nombre, Celular, Correo, Contrasena } = req.body;
 
+    // Hashear contraseña y crear preferencias
     const hashedPassword = await bcrypt.hash(Contrasena, 10);
-
     const preferencias = {
       actividades_favoritas: ["Restaurantes", "Parques", "Museos", "Eventos", "Clubes"],
       horario_preferido: {
         inicio: "00:00",
         fin: "00:00"
       },
-      notificaciones_activadas: false,
-      idioma_preferido: "es" // Añadir el idioma preferido
+      idioma_preferido: "es"
     };
-
     const preferenciasJSON = JSON.stringify(preferencias);
 
+    // Crear nuevo usuario
     const newUser = await Usuario.create({
       Nombre,
       Celular,
@@ -27,10 +26,11 @@ const registerUser = async (req, res) => {
       Preferencias: preferenciasJSON
     });
 
-    res.status(201).json({ message: "Usuario registrado exitosamente", newUser });
+    // Responder con éxito
+    res.status(201).json({ success: true, message: "Usuario registrado exitosamente", data: newUser });
   } catch (error) {
-    console.error("Error al registrar usuario:", error);
-    res.status(500).json({ message: "Error al registrar usuario", error: error.message });
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error al registrar usuario" });
   }
 };
 
