@@ -1,9 +1,9 @@
 const axios = require('axios');
 
-// Coordenadas de Cusco
-const cuscoLocation = {
-  lat: -13.5300,
-  lng: -71.9700
+// Coordenadas de Lima, Perú
+const limaLocation = {
+  lat: -12.0464,
+  lng: -77.0428
 };
 
 // Radio en metros
@@ -22,7 +22,7 @@ const getNearbyPlaces = async (req, res) => {
 
     const response = await axios.get(`https://maps.googleapis.com/maps/api/place/nearbysearch/json`, {
       params: {
-        location: `${cuscoLocation.lat},${cuscoLocation.lng}`,
+        location: `${limaLocation.lat},${limaLocation.lng}`,
         radius: radius,
         type: type,
         key: API_KEY
