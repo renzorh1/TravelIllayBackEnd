@@ -3,4 +3,4 @@
 /workspace.xml
 .env
 .idea/
-/node_modules/
+node_modules/
