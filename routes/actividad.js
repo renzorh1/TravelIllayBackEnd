@@ -1,6 +1,8 @@
-const express = require('express');
-const router = express.Router();
+//Define las rutas para el recurso de actividades en una aplicación web utilizando el framework Express.js Utililza un controlador para manejar las solicitudes y respuestas.
+const express = require('express'); //Framework Express.js
+const router = express.Router(); //Objeto que se utiliza para definir rutas de la aplicación
 const { createActividad, getAllActividades, getActividadById, updateActividad, deleteActividad } = require('../controllers/actividadController');
+//Objeto que contiene las funciones que manejan las solicitudes y respuestas para el recurso de actividades
 
 // Ruta para crear una nueva actividad
 router.post('/actividades', createActividad);

@@ -1,5 +1,6 @@
-const Actividad = require('../models/Actividad');
-const axios = require('axios');
+//*Manejar solicitudes y respuestas para el recurso de actividades
+const Actividad = require('../models/Actividad'); //Modelo de BD para el recurso de actividades
+const axios = require('axios');//Biblioteca para realizar solicitudes HTTP a la API de Google Places
 
 // Coordenadas de Lima, Perú
 const limaLocation = {
