@@ -1,0 +1,10 @@
+POST http://localhost:3000/itinerario/guardar
+Content-Type: application/json
+
+{
+  "Nombre": "Itinerario 4",
+  "Lugar": "Arequipa, Perú",
+  "HoraInicio": "09:00",
+  "HoraFin": "11:00",
+  "UsuarioId": 1
+}

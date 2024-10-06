@@ -9,6 +9,7 @@ const sequelize = require('./config/database'); //instancia de Sequelize configu
 const userRoutes = require('./routes/user');
 const actividadRoutes = require('./routes/actividad');
 const googlePlacesRoutes = require('./routes/googlePlaces');
+const itinerarioRoutes = require('./routes/itinerario');
 
 const app = express(); //se crea nueva instancia de la aplicación Express.
 const PORT = process.env.PORT || 3000; //Se establece el puerto en el que se ejecutará la aplicacion.
@@ -16,10 +17,12 @@ const PORT = process.env.PORT || 3000; //Se establece el puerto en el que se eje
 // Middleware
 app.use(bodyParser.json()); //habilita el parsing de solicitudes HTTP con cuerpos y formatos JSON.
 app.use(bodyParser.urlencoded({ extended: true })); //habilita el parsing de solicitudes HTTP con cuerpos y formato URL-encoded.
+app.use(express.json());
 // Rutas
 app.use('/api/users', userRoutes);
 app.use('/api/actividad', actividadRoutes);
 app.use('/api/googlePlaces', googlePlacesRoutes);
+app.use('/itinerario', itinerarioRoutes);
 
 
 // Iniciar el Servidor y Conectar a la Base de Datos
