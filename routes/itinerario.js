@@ -1,7 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const itinerarioController = require('../controllers/itinerarioController');
+const {selectItinerario, createManualItinerario, createAutomaticItinerario} = require('../controllers/itinerarioController');
 
-router.post('/guardar', itinerarioController.guardarItinerario);
+router.post('/select', selectItinerario);
+
+// Ruta para la creacion manual de itinerario
+router.post('/manual', createManualItinerario);
+
+// Ruta para la creacion automatica de itinerario
+router.post('/automatico', createAutomaticItinerario);
 
 module.exports = router;

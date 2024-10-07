@@ -22,7 +22,7 @@ app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/actividad', actividadRoutes);
 app.use('/api/googlePlaces', googlePlacesRoutes);
-app.use('/itinerario', itinerarioRoutes);
+app.use('/api/itinerario', itinerarioRoutes);
 
 
 // Iniciar el Servidor y Conectar a la Base de Datos

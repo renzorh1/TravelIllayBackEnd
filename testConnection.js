@@ -2,7 +2,7 @@ require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize('TravelIllay', 'sa', '12345678', {
-  host: 'MSI',
+  host: process.env.DB_HOST,
   dialect: 'mssql',
   port: process.env.DB_PORT,
   dialectOptions: {
