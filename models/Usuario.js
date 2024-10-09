@@ -27,14 +27,15 @@ const Usuario = sequelize.define('Usuario', {
     field: 'Contraseña'
   },
   Preferencias: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-    get() {
-      const rawValue = this.getDataValue('Preferencias');
-      return rawValue ? JSON.parse(rawValue) : null;
-    },
-    set(value) {
-      this.setDataValue('Preferencias', JSON.stringify(value));
+    type: Sequelize.TEXT, // Este campo debe manejar objetos JSON directamente
+    allowNull: false,
+    defaultValue: {
+      actividades_favoritas: [],
+      horario_preferido: {
+        inicio: "00:00",
+        fin: "00:00"
+      },
+      idioma_preferido: "es"
     }
   },
 }, {
