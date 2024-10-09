@@ -1,12 +1,12 @@
+// models/ActividadItinerario.js
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Actividad = sequelize.define('Actividad', {
+const ActividadItinerario = sequelize.define('ActividadItinerario', {
   Id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true,
-    field: 'Id'
   },
   Nombre: {
     type: DataTypes.STRING(255),
@@ -35,8 +35,12 @@ const Actividad = sequelize.define('Actividad', {
     type: DataTypes.DECIMAL(2, 1),
     allowNull: true,
   },
-  Horario: {
-    type: DataTypes.TEXT,
+  HoraInicio: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  HoraFin: {
+    type: DataTypes.STRING(50),
     allowNull: true,
   },
   ImagenUrl: {
@@ -44,8 +48,8 @@ const Actividad = sequelize.define('Actividad', {
     allowNull: true,
   },
 }, {
-  tableName: 'Actividades',
-  timestamps: false, // Desactiva createdAt y updatedAt si no los necesitas
+  tableName: 'ActividadesItinerario',
+  timestamps: false
 });
 
-module.exports = Actividad;
+module.exports = ActividadItinerario;

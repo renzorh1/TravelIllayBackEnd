@@ -47,9 +47,29 @@ const selectItinerario = (req, res) => {
     }
 };
 
+// Función para obtener itinerarios por ID de usuario
+const obtenerItinerariosPorUsuario = async (req, res) => {
+    const { usuarioId } = req.params;
+    
+    try {
+      const itinerarios = await Itinerario.findAll({
+        where: { UsuarioId: usuarioId },
+        attributes: ['Id', 'Nombre', 'Lugar', 'HoraInicio', 'HoraFin', 'UsuarioId']
+      });
+      
+      res.json(itinerarios);
+    } catch (error) {
+      console.error("Error al obtener itinerarios:", error);
+      res.status(500).json({ error: "Error al obtener itinerarios" });
+    }
+  };
+  
+
+
 
 module.exports = {
     createManualItinerario,
     createAutomaticItinerario,
-    selectItinerario
+    selectItinerario,
+    obtenerItinerariosPorUsuario
   };
