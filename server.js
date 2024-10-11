@@ -7,10 +7,8 @@ const bodyParser = require('body-parser'); // middleware para parsear solicitude
 const sequelize = require('./config/database'); // instancia de Sequelize configurada en otro archivo
 // archivos que definen las rutas para los recursos
 const userRoutes = require('./routes/user');
-const actividadRoutes = require('./routes/actividad');
 const googlePlacesRoutes = require('./routes/googlePlaces');
-const itinerarioRoutes = require('./routes/itinerario');
-const userOpcionesRoutes = require('./routes/userOpciones');
+
 
 const app = express(); // se crea nueva instancia de la aplicación Express.
 const PORT = process.env.PORT || 3000; // Se establece el puerto en el que se ejecutará la aplicación.
@@ -22,10 +20,8 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/users', userRoutes);
-app.use('/api/actividades', actividadRoutes); // aquí se define una sola vez la ruta para actividades
 app.use('/api/googlePlaces', googlePlacesRoutes);
-app.use('/api/itinerario', itinerarioRoutes);
-app.use('/api/opciones', userOpcionesRoutes);
+
 
 // Iniciar el Servidor y Conectar a la Base de Datos
 sequelize.sync().then(() => {

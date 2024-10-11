@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, updateUser, getUser, getUserPreferences, getUserBasicInfo } = require('../controllers/userController');
+const { registerUser, loginUser, updateUser, getUser, getUserPreferences, updateUserActivities, updateUserSchedule} = require('../controllers/userController');
 
 // Ruta para registrar un nuevo usuario
 router.post('/register', registerUser);
@@ -18,7 +18,12 @@ router.get('/user/:id', getUser);
 // Ruta para obtener solo las preferencias del usuario
 router.get('/user/:id/preferences', getUserPreferences);
 
-// Ruta para obtener solo la información básica del usuario (excepto preferencias)
-router.get('/user/:id/basicinfo', getUserBasicInfo);
+
+// Rutas para actualizar las actividades favoritas y el horario del usuario
+router.put('/user/update/activities/:id', updateUserActivities); // Actualizar actividades favoritas por ID
+
+router.put('/user/update/schedule/:id', updateUserSchedule);     // Actualizar horario por ID
+
+
 
 module.exports = router;
