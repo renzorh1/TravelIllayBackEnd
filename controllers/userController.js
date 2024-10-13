@@ -131,10 +131,9 @@ const getUser = async (req, res) => {
 
 
 // Obtener solo las preferencias del usuario
-// Obtener solo las preferencias del usuario
 const getUserPreferences = async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10); // Asegura que el id sea un número entero
+    const id = parseInt(req.params.id, 10);
 
     if (isNaN(id)) {
       return res.status(400).json({ message: 'ID inválido' });
@@ -146,14 +145,12 @@ const getUserPreferences = async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Extraer solo las actividades_favoritas, hora_inicio_preferida y hora_fin_preferida
     const { actividades_favoritas, hora_inicio_preferida, hora_fin_preferida } = user;
-    
-    // Responder con solo los campos requeridos
-    res.status(200).json({ 
-      actividades_favoritas: JSON.parse(actividades_favoritas),  // Asegúrate de que se parsea correctamente
-      hora_inicio_preferida, 
-      hora_fin_preferida 
+
+    res.status(200).json({
+      actividades_favoritas: actividades_favoritas ? JSON.parse(actividades_favoritas) : [], // Asegura que sea un array
+      hora_inicio_preferida,
+      hora_fin_preferida,
     });
   } catch (error) {
     console.error('Error al obtener preferencias del usuario:', error);
@@ -162,73 +159,41 @@ const getUserPreferences = async (req, res) => {
 };
 
 
-// Controlador para actualizar las actividades favoritas del usuario
-const updateUserActivities = async (req, res) => {
+
+// Controlador para actualizar tanto actividades como horarios del usuario
+const updateUserPreferences = async (req, res) => {
   try {
-    const { actividad } = req.body; // Tomamos las actividades nuevas
-    const id = parseInt(req.params.id, 10); // Obtenemos el ID del usuario desde los parámetros de la URL
+      const id = parseInt(req.params.id, 10);
+      const { actividades_favoritas, hora_inicio_preferida, hora_fin_preferida } = req.body;
 
-    // Buscar al usuario por id
-    const user = await Usuario.findByPk(id);
+      const user = await Usuario.findByPk(id);
+      if (!user) {
+          return res.status(404).json({ message: 'Usuario no encontrado' });
+      }
 
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
+      if (actividades_favoritas) {
+          user.actividades_favoritas = JSON.stringify(actividades_favoritas); // Convertir la lista de actividades a JSON
+      }
+      if (hora_inicio_preferida) {
+          user.hora_inicio_preferida = hora_inicio_preferida;
+      }
+      if (hora_fin_preferida) {
+          user.hora_fin_preferida = hora_fin_preferida;
+      }
 
-    // Parsear las actividades nuevas, separarlas por comas y eliminar espacios
-    let nuevasActividades = actividad.split(',').map(a => a.trim());
+      await user.save();
 
-    // Reemplazar las actividades actuales por las nuevas
-    user.actividades_favoritas = JSON.stringify(nuevasActividades);
-    await user.save(); // Guardar los cambios en la base de datos
-
-    // Responder con éxito y las nuevas actividades
-    res.status(200).json({
-      message: 'Actividades actualizadas con éxito',
-      actividades_favoritas: nuevasActividades
-    });
+      res.status(200).json({
+          message: 'Preferencias actualizadas con éxito',
+          actividades_favoritas: actividades_favoritas,
+          hora_inicio_preferida: user.hora_inicio_preferida,
+          hora_fin_preferida: user.hora_fin_preferida
+      });
   } catch (error) {
-    console.error('Error al actualizar actividades:', error);
-    res.status(500).json({ message: 'Error al actualizar actividades', error: error.message });
+      console.error('Error al actualizar preferencias:', error);
+      res.status(500).json({ message: 'Error al actualizar preferencias', error: error.message });
   }
 };
-
-
-
-// Controlador para actualizar el horario preferido del usuario
-const updateUserSchedule = async (req, res) => {
-  try {
-    const { hora_inicio_preferida, hora_fin_preferida } = req.body; // Recibe los horarios nuevos
-    const id = parseInt(req.params.id, 10); // Obtenemos el ID del usuario desde los parámetros de la URL
-
-    const user = await Usuario.findByPk(id);
-
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    // Actualizar horario de inicio y fin
-    if (hora_inicio_preferida) {
-      user.hora_inicio_preferida = hora_inicio_preferida;
-    }
-
-    if (hora_fin_preferida) {
-      user.hora_fin_preferida = hora_fin_preferida;
-    }
-
-    await user.save();
-
-    res.status(200).json({
-      message: 'Horario actualizado correctamente',
-      hora_inicio_preferida: user.hora_inicio_preferida,
-      hora_fin_preferida: user.hora_fin_preferida
-    });
-  } catch (error) {
-    console.error('Error al actualizar el horario:', error);
-    res.status(500).json({ message: 'Error al actualizar el horario', error: error.message });
-  }
-};
-
 
 
 
@@ -239,6 +204,5 @@ module.exports = {
   updateUser,
   getUser,
   getUserPreferences,
-  updateUserActivities,
-  updateUserSchedule
+  updateUserPreferences
 };
