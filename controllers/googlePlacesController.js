@@ -96,6 +96,59 @@ const getNearbyPlaces = async (req, res) => {
   }
 };
 
+
+const getFilteredPlaces = async (req, res) => {
+  try {
+    // Obtener el parámetro 'types' de la consulta (puede ser uno o varios tipos)
+    const { types } = req.query;
+
+    // Validar si el parámetro 'types' fue enviado y separarlo en un array
+    const requestedTypes = types ? types.split(',') : ['restaurant', 'park', 'museum', 'library'];
+    
+    // Validar que los tipos solicitados sean válidos
+    const validTypes = requestedTypes.filter(type => Object.keys(typeMapping).includes(type));
+
+    if (validTypes.length === 0) {
+      return res.status(400).json({ message: 'Debes especificar al menos un tipo válido.' });
+    }
+
+    let allPlaces = [];
+
+    // Obtener lugares para cada tipo solicitado
+    for (const type of validTypes) {
+      const placesByType = await getAllPlacesByType(type);
+      allPlaces = [...allPlaces, ...placesByType];
+    }
+
+    console.log("Todas las actividades:", allPlaces); // Verifica la respuesta aquí
+
+    const transformedResults = allPlaces.map(place => {
+      const typeInSpanish = place.types.find(t => validTypes.includes(t));
+      return {
+        name: place.name || 'Nombre no disponible',
+        rating: place.rating || 3.3,
+        type: typeInSpanish ? typeMapping[typeInSpanish] : null,
+        lat: place.geometry.location.lat,
+        lng: place.geometry.location.lng
+      };
+    });
+
+    // Filtrar resultados para eliminar aquellos sin tipo
+    const filteredResults = transformedResults.filter(result => result.type !== null);
+
+    // Ordenar los resultados alfabéticamente por nombre
+    filteredResults.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Enviar la respuesta transformada
+    res.status(200).json(filteredResults);
+  } catch (error) {
+    console.error('Error al obtener lugares filtrados:', error);
+    res.status(500).json({ message: 'Error al obtener lugares filtrados', error: error.message });
+  }
+};
+
+
 module.exports = {
-  getNearbyPlaces
+  getNearbyPlaces,
+  getFilteredPlaces
 };
