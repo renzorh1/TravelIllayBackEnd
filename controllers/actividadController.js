@@ -64,7 +64,7 @@ const getAllActividades = async (req, res) => {
         latitud: actividad.Latitud,
         longitud: actividad.Longitud,
         calificacion: actividad.Calificacion,
-        horario: actividad.Horario,
+      horario: actividad.Horario,
         imagenUrl: actividad.ImagenUrl
       })),
       ...googlePlaces.map(place => ({
