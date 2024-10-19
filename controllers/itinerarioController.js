@@ -22,4 +22,37 @@ const crearItinerario = async (req, res) => {
     }
 };
 
-module.exports = { crearItinerario };
+// Función para eliminar el último itinerario de un usuario
+const eliminarUltimoItinerario = async (req, res) => {
+    const { usuario_id } = req.params; // Obtén el usuario_id del parámetro
+    console.log('Usuario ID recibido:', usuario_id); // Log para verificar el ID del usuario
+
+    try {
+        // Obtener el último itinerario creado por el usuario
+        const ultimoItinerario = await Itinerario.findOne({
+            where: { usuario_id: usuario_id },
+            order: [['fecha_creacion', 'DESC']] // Ordenar por fecha de creación descendente
+        });
+
+        // Verificar si se encontró un itinerario
+        if (!ultimoItinerario) {
+            return res.status(404).json({ error: 'No se encontró itinerario para el usuario' });
+        }
+
+        // Eliminar el itinerario encontrado
+        const resultado = await Itinerario.destroy({ where: { id: ultimoItinerario.id } });
+        
+        if (resultado) {
+            res.status(200).json({ message: 'Último itinerario eliminado con éxito' });
+        } else {
+            res.status(404).json({ error: 'Error al eliminar el itinerario' });
+        }
+    } catch (error) {
+        console.error('Error al eliminar itinerario:', error);
+        res.status(500).json({ error: 'Error al eliminar itinerario' });
+    }
+};
+
+
+module.exports = { crearItinerario, eliminarUltimoItinerario };
+
