@@ -147,8 +147,52 @@ const getFilteredPlaces = async (req, res) => {
   }
 };
 
+const getActivityByName = async (req, res) => {
+  try {
+    const { name } = req.query; // Obtener el nombre de la actividad de la consulta
+
+    if (!name) {
+      return res.status(400).json({ message: 'El nombre de la actividad es obligatorio.' });
+    }
+
+    // Obtener todas las actividades como lo haces actualmente
+    const types = ['restaurant', 'park', 'museum', 'library'];
+    let allPlaces = [];
+
+    for (const type of types) {
+      const placesByType = await getAllPlacesByType(type);
+      allPlaces = [...allPlaces, ...placesByType];
+    }
+
+    // Filtrar la actividad por el nombre proporcionado
+    const activity = allPlaces.find(place => place.name.toLowerCase() === name.toLowerCase());
+
+    if (!activity) {
+      return res.status(404).json({ message: 'Actividad no encontrada.' });
+    }
+
+    // Transformar los datos de la actividad encontrada
+    const transformedResult = {
+      name: activity.name || 'Nombre no disponible',
+      rating: activity.rating || 3.3,
+      type: typeMapping[activity.types.find(t => types.includes(t))] || null,
+      lat: activity.geometry.location.lat,
+      lng: activity.geometry.location.lng
+    };
+
+    // Enviar la actividad encontrada como respuesta
+    res.status(200).json(transformedResult);
+  } catch (error) {
+    console.error('Error al obtener actividad por nombre:', error);
+    res.status(500).json({ message: 'Error al obtener actividad por nombre', error: error.message });
+  }
+};
+
+
+
 
 module.exports = {
   getNearbyPlaces,
-  getFilteredPlaces
+  getFilteredPlaces,
+  getActivityByName
 };
