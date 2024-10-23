@@ -9,6 +9,8 @@ const sequelize = require('./config/database'); // instancia de Sequelize config
 const userRoutes = require('./routes/user');
 const googlePlacesRoutes = require('./routes/googlePlaces');
 const itinerarioRoutes = require('./routes/itinerario');
+const actividadController = require('./routes/actividad');
+
 
 const app = express(); // se crea nueva instancia de la aplicación Express.
 const PORT = process.env.PORT || 3000; // Se establece el puerto en el que se ejecutará la aplicación.
@@ -23,6 +25,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/googlePlaces', googlePlacesRoutes);
 // Usar las rutas de itinerarios
 app.use('/api/itinerarios', itinerarioRoutes);
+
+app.use('/api/actividad', actividadController);
+
 // Iniciar el Servidor y Conectar a la Base de Datos
 sequelize.sync().then(() => {
   app.listen(PORT, () => { // Inicia el servidor en el puerto configurado y registra un mensaje de éxito en la consola

@@ -74,19 +74,19 @@ const getNearbyPlaces = async (req, res) => {
     const transformedResults = allPlaces.map(place => {
       const typeInSpanish = place.types.find(t => types.includes(t));
       return {
-          name: place.name || 'Nombre no disponible',
-          rating: place.rating || 3.3,
-          type: typeInSpanish ? typeMapping[typeInSpanish] : null, // Usa el mapeo aquí
-          lat: place.geometry.location.lat,
-          lng: place.geometry.location.lng
+        nombre: place.name || 'Nombre no disponible',
+        calificacion: place.rating || 3.3,
+        tipo: typeInSpanish ? typeMapping[typeInSpanish] : null, // Usa el mapeo aquí
+        latitud: place.geometry.location.lat,
+        longitud: place.geometry.location.lng
       };
     });
 
     // Filtrar resultados para eliminar aquellos sin tipo
-    const filteredResults = transformedResults.filter(result => result.type !== null);
+    const filteredResults = transformedResults.filter(result => result.tipo !== null);
 
     // Ordenar los resultados alfabéticamente por nombre
-    filteredResults.sort((a, b) => a.name.localeCompare(b.name));
+    filteredResults.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
     // Enviar la respuesta transformada
     res.status(200).json(filteredResults);
@@ -95,7 +95,6 @@ const getNearbyPlaces = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener lugares cercanos', error: error.message });
   }
 };
-
 
 const getFilteredPlaces = async (req, res) => {
   try {
@@ -125,19 +124,19 @@ const getFilteredPlaces = async (req, res) => {
     const transformedResults = allPlaces.map(place => {
       const typeInSpanish = place.types.find(t => validTypes.includes(t));
       return {
-        name: place.name || 'Nombre no disponible',
-        rating: place.rating || 3.3,
-        type: typeInSpanish ? typeMapping[typeInSpanish] : null,
-        lat: place.geometry.location.lat,
-        lng: place.geometry.location.lng
+        nombre: place.name || 'Nombre no disponible',
+        calificacion: place.rating || 3.3,
+        tipo: typeInSpanish ? typeMapping[typeInSpanish] : null,
+        latitud: place.geometry.location.lat,
+        longitud: place.geometry.location.lng
       };
     });
 
     // Filtrar resultados para eliminar aquellos sin tipo
-    const filteredResults = transformedResults.filter(result => result.type !== null);
+    const filteredResults = transformedResults.filter(result => result.tipo !== null);
 
     // Ordenar los resultados alfabéticamente por nombre
-    filteredResults.sort((a, b) => a.name.localeCompare(b.name));
+    filteredResults.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
     // Enviar la respuesta transformada
     res.status(200).json(filteredResults);
@@ -173,11 +172,11 @@ const getActivityByName = async (req, res) => {
 
     // Transformar los datos de la actividad encontrada
     const transformedResult = {
-      name: activity.name || 'Nombre no disponible',
-      rating: activity.rating || 3.3,
-      type: typeMapping[activity.types.find(t => types.includes(t))] || null,
-      lat: activity.geometry.location.lat,
-      lng: activity.geometry.location.lng
+      nombre: activity.name || 'Nombre no disponible',
+      calificacion: activity.rating || 3.3,
+      tipo: typeMapping[activity.types.find(t => types.includes(t))] || null,
+      latitud: activity.geometry.location.lat,
+      longitud: activity.geometry.location.lng
     };
 
     // Enviar la actividad encontrada como respuesta
@@ -187,9 +186,6 @@ const getActivityByName = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener actividad por nombre', error: error.message });
   }
 };
-
-
-
 
 module.exports = {
   getNearbyPlaces,
