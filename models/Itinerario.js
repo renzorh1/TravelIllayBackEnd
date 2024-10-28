@@ -1,23 +1,26 @@
-// models/Itinerario.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); // Conexión de la base de datos
+const sequelize = require('../config/database');
 
 const Itinerario = sequelize.define('Itinerario', {
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true
+        type: DataTypes.INTEGER, // Cambiado a INTEGER
+        primaryKey: true,
+        autoIncrement: true
     },
     usuario_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+        type: DataTypes.INTEGER, // Cambiado a INTEGER
+        allowNull: false,
+        references: {
+            model: 'usuarios',
+            key: 'id'
+        }
     },
     nombre: {
         type: DataTypes.STRING,
         allowNull: false
     },
     fecha_creacion: {
-        type: DataTypes.STRING, // Define como String
+        type: DataTypes.DATE, // Cambiado a DataTypes.DATE
         allowNull: false
     },
     es_activo: {
@@ -25,8 +28,8 @@ const Itinerario = sequelize.define('Itinerario', {
         defaultValue: true
     }
 }, {
-    tableName: 'Itinerarios',
-    timestamps: false // Deshabilita timestamps automáticos
+    tableName: 'itinerarios',
+    timestamps: false
 });
 
 module.exports = Itinerario;
