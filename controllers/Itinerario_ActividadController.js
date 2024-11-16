@@ -42,7 +42,38 @@ const guardarRelacionItinerarioActividad = async (req, res) => {
     }
 };
 
+const obtenerActividadesDeItinerario = async (req, res) => {
+    const { itinerarioId } = req.params;
+
+    try {
+        const actividades = await ItinerarioActividad.findAll({
+            where: { itinerario_id: itinerarioId },
+            include: [
+                {
+                    model: Actividad,
+                    as: 'actividad', // Alias definido en la asociación
+                    attributes: ['nombre', 'calificacion', 'hora_inicio_preferida', 'hora_fin_preferida']
+                }
+            ]
+        });
+
+        if (!actividades || actividades.length === 0) {
+            return res.status(404).json({ message: `No se encontraron actividades para el itinerario con ID: ${itinerarioId}` });
+        }
+
+        res.status(200).json({ actividades });
+    } catch (error) {
+        console.error('Error al obtener actividades del itinerario:', error);
+        res.status(500).json({ message: 'Error al obtener actividades del itinerario', error: error.message });
+    }
+};
+
+
 // Exportar la función
 module.exports = {
-    guardarRelacionItinerarioActividad
+   
+    guardarRelacionItinerarioActividad,
+    obtenerActividadesDeItinerario
+
+    
 };

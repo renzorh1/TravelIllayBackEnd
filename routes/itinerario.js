@@ -1,10 +1,19 @@
 // routes/itinerario.js
 const express = require('express');
 const router = express.Router();
-const { crearItinerario, eliminarUltimoItinerario  } = require('../controllers/itinerarioController');
+const itinerarioController = require('../controllers/itinerarioController');
 
-router.post('/crear', crearItinerario);
-router.delete('/eliminar/:usuario_id', eliminarUltimoItinerario);
+// Crear un nuevo itinerario
+router.post('/crear', itinerarioController.crearItinerario);
+
+// Eliminar el último itinerario de un usuario
+router.delete('/eliminar-ultimo/:usuario_id', itinerarioController.eliminarUltimoItinerario);
+
+// Obtener el último ID de itinerario de un usuario
+router.get('/ultimo-id/:usuario_id', itinerarioController.obtenerUltimoItinerarioId);
+
+// Nueva ruta para obtener itinerarios por usuario
+router.get('/usuario/:usuario_id/itinerarios', itinerarioController.obtenerItinerariosPorUsuario);
 
 
 module.exports = router;

@@ -1,3 +1,2 @@
-# Obtener todas las actividades
-GET http://localhost:3000/api/actividades/obtener
+GET http://localhost:3000/api/itinerarios/11/actividades
 Content-Type: application/json

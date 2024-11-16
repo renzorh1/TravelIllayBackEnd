@@ -67,4 +67,52 @@ const eliminarUltimoItinerario = async (req, res) => {
     }
 };
 
-module.exports = { crearItinerario, eliminarUltimoItinerario };
+// Obtener el próximo ID de itinerario (último ID + 1)
+const obtenerUltimoItinerarioId = async (req, res) => {
+    const { usuario_id } = req.params;
+
+    try {
+        const ultimoItinerario = await Itinerario.findOne({
+            where: { usuario_id: usuario_id },
+            order: [['fecha_creacion', 'DESC']] // Ordenar por la fecha más reciente
+        });
+
+        // Convertir el último ID a número, sumar 1 y devolverlo
+        const proximoId = ultimoItinerario ? parseInt(ultimoItinerario.id, 10) + 1 : 1;
+        console.log('Próximo itinerario ID calculado:', proximoId);
+
+        res.status(200).json({
+            proximoId: proximoId,
+            message: 'Próximo itinerario ID obtenido con éxito'
+        });
+    } catch (error) {
+        console.error('Error al obtener el próximo itinerario ID:', error);
+        res.status(500).json({ error: 'Error al obtener el próximo itinerario ID' });
+    }
+};
+
+const obtenerItinerariosPorUsuario = async (req, res) => {
+    const { usuario_id } = req.params; // Obtener el usuario_id de los parámetros
+
+    try {
+        // Buscar todos los itinerarios del usuario especificado
+        const itinerarios = await Itinerario.findAll({
+            where: { usuario_id: usuario_id },
+            order: [['fecha_creacion', 'DESC']] // Ordenar por la fecha de creación descendente
+        });
+
+        if (itinerarios.length > 0) {
+            res.status(200).json({
+                itinerarios: itinerarios,
+                message: `Se encontraron ${itinerarios.length} itinerario(s) para el usuario con ID: ${usuario_id}`,
+            });
+        } else {
+            res.status(404).json({ message: 'No se encontraron itinerarios para este usuario.' });
+        }
+    } catch (error) {
+        console.error('Error al obtener itinerarios por usuario:', error);
+        res.status(500).json({ error: 'Error al obtener itinerarios por usuario', details: error.message });
+    }
+};
+
+module.exports = { crearItinerario, eliminarUltimoItinerario, obtenerUltimoItinerarioId, obtenerItinerariosPorUsuario };
