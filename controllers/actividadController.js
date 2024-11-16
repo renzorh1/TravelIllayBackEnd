@@ -1,7 +1,7 @@
 // actividadController.js
 const Actividad = require('../models/Actividad'); // Asegúrate de que la ruta es correcta
 const ItinerarioActividad = require('../models/Itinerario_Actividad'); // Asegúrate de usar la ruta y el nombre correctos
-
+const RelacionItinerarioActividad = require('../models/Itinerario_Actividad'); // Reemplaza con la ruta correcta
 
 const guardarActividad = async (req, res) => {
   try {
@@ -77,7 +77,38 @@ const eliminarActividad = async (req, res) => {
   }
 };
 
+const obtenerActividadesConId = async (req, res) => {
+  try {
+    const { itinerarioId } = req.params;
+
+    // Buscar las relaciones entre itinerario y actividades
+    const relaciones = await RelacionItinerarioActividad.findAll({
+      where: { itinerario_id: itinerarioId },
+      include: [
+        {
+          model: Actividad,
+          as: 'actividad', // Usa el alias definido en la asociación
+        },
+      ],
+    });
+
+    // Verificar si hay relaciones
+    if (!relaciones || relaciones.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron actividades para este itinerario.' });
+    }
+
+    // Formatear la respuesta con las actividades
+    const actividades = relaciones.map((relacion) => relacion.actividad);
+
+    res.status(200).json(actividades);
+  } catch (error) {
+    console.error('Error al obtener actividades:', error);
+    res.status(500).json({ message: 'Error al obtener actividades.', error: error.message });
+  }
+};
+
 module.exports = {
   guardarActividad,
-  eliminarActividad
+  eliminarActividad,
+  obtenerActividadesConId
 };

@@ -41,4 +41,6 @@ ItinerarioActividad.belongsTo(Itinerario, {
     as: 'itinerario' // Alias para acceder a los datos de Itinerario
 });
 
+
+
 module.exports = ItinerarioActividad;
