@@ -1,7 +1,7 @@
 // controllers/itinerarioController.js
 const Itinerario = require('../models/Itinerario'); // Importa el modelo
 const moment = require('moment'); // Importa moment para manejar el formato de la fecha
-
+const ItinerarioActividad = require('../models/itinerario_actividad'); // Asegúrate de que la ruta sea correcta
 // Crear un nuevo itinerario
 const crearItinerario = async (req, res) => {
     const { usuario_id, nombre } = req.body;
@@ -115,4 +115,30 @@ const obtenerItinerariosPorUsuario = async (req, res) => {
     }
 };
 
-module.exports = { crearItinerario, eliminarUltimoItinerario, obtenerUltimoItinerarioId, obtenerItinerariosPorUsuario };
+// Eliminar un itinerario por ID
+const eliminarItinerario = async (req, res) => {
+    const { itinerario_id } = req.params; // ID del itinerario a eliminar
+
+    try {
+        // Eliminar todas las actividades asociadas al itinerario
+        await ItinerarioActividad.destroy({
+            where: { itinerario_id }
+        });
+
+        // Eliminar el itinerario
+        const resultado = await Itinerario.destroy({
+            where: { id: itinerario_id }
+        });
+
+        if (resultado) {
+            res.status(200).json({ message: 'Itinerario eliminado con éxito' });
+        } else {
+            res.status(404).json({ error: 'Itinerario no encontrado' });
+        }
+    } catch (error) {
+        console.error('Error al eliminar itinerario:', error);
+        res.status(500).json({ error: 'Error al eliminar itinerario', details: error.message });
+    }
+};
+
+module.exports = { crearItinerario, eliminarUltimoItinerario, obtenerUltimoItinerarioId, obtenerItinerariosPorUsuario, eliminarItinerario };

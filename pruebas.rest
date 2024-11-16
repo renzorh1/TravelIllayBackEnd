@@ -1,2 +1,2 @@
-GET http://localhost:3000/api/itinerarios/11/actividades
-Content-Type: application/json
+### Eliminar un itinerario por ID
+DELETE http://localhost:3000/api/itinerarios/12
