@@ -51,7 +51,7 @@ const obtenerActividadesDeItinerario = async (req, res) => {
             include: [
                 {
                     model: Actividad,
-                    as: 'actividad', // Alias definido en la asociación
+                    as: 'actividad',
                     attributes: ['nombre', 'calificacion', 'hora_inicio_preferida', 'hora_fin_preferida']
                 }
             ]
@@ -61,13 +61,29 @@ const obtenerActividadesDeItinerario = async (req, res) => {
             return res.status(404).json({ message: `No se encontraron actividades para el itinerario con ID: ${itinerarioId}` });
         }
 
-        res.status(200).json({ actividades });
+        // Formatear las horas
+        const actividadesFormateadas = actividades.map((actividadRelacion) => {
+            const actividad = actividadRelacion.actividad;
+
+            return {
+                id: actividadRelacion.id,
+                itinerario_id: actividadRelacion.itinerario_id,
+                actividad_id: actividadRelacion.actividad_id,
+                actividad: {
+                    nombre: actividad.nombre,
+                    calificacion: actividad.calificacion,
+                    hora_inicio_preferida: new Date(actividad.hora_inicio_preferida).toISOString().substr(11, 5), // Extrae solo HH:mm
+                    hora_fin_preferida: new Date(actividad.hora_fin_preferida).toISOString().substr(11, 5) // Extrae solo HH:mm
+                }
+            };
+        });
+
+        res.status(200).json({ actividades: actividadesFormateadas });
     } catch (error) {
         console.error('Error al obtener actividades del itinerario:', error);
         res.status(500).json({ message: 'Error al obtener actividades del itinerario', error: error.message });
     }
 };
-
 
 // Exportar la función
 module.exports = {
