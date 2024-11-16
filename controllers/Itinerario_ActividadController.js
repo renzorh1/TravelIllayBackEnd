@@ -1,6 +1,7 @@
-const ItinerarioActividad = require('../models/Itinerario_Actividad');
+
 const Itinerario = require('../models/Itinerario'); // Modelo del itinerario
 const Actividad = require('../models/Actividad'); // Modelo de la actividad
+const ItinerarioActividad = require('../models/Itinerario_Actividad');
 
 // Definir la función para guardar la relación entre itinerario y actividad
 const guardarRelacionItinerarioActividad = async (req, res) => {

@@ -12,7 +12,7 @@
   const actividadController = require('./routes/actividad');
   const ItinerarioActividadRoutes = require('./routes/itinerario_actividad');
   const itinerarioActividadRoutes = require('./routes/itinerario_actividad'); // Ruta correcta al archivo de rutas
-
+  const actividadRoutes = require('./routes/actividad');
   
 
 
@@ -26,6 +26,7 @@
   app.use(express.json());
 
   // Rutas
+  app.use('/api/actividad', actividadRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/googlePlaces', googlePlacesRoutes);
   // Usar las rutas de itinerarios

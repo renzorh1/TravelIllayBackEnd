@@ -1,2 +1,2 @@
-### Eliminar un itinerario por ID
-DELETE http://localhost:3000/api/itinerarios/12
+DELETE http://localhost:3000/api/actividad/eliminar/19
+Content-Type: application/json

@@ -1,5 +1,7 @@
 // actividadController.js
 const Actividad = require('../models/Actividad'); // Asegúrate de que la ruta es correcta
+const ItinerarioActividad = require('../models/Itinerario_Actividad'); // Asegúrate de usar la ruta y el nombre correctos
+
 
 const guardarActividad = async (req, res) => {
   try {
@@ -46,6 +48,36 @@ const guardarActividad = async (req, res) => {
   }
 };
 
+
+const eliminarActividad = async (req, res) => {
+  try {
+    const { actividadId } = req.params; // ID de la actividad a eliminar
+
+    // Eliminar las relaciones en la tabla itinerario_actividades
+    await ItinerarioActividad.destroy({
+      where: { actividad_id: actividadId },
+    });
+
+    // Luego, eliminar la actividad
+    const resultado = await Actividad.destroy({
+      where: { id: actividadId },
+    });
+
+    if (resultado) {
+      res.status(200).json({ message: 'Actividad eliminada con éxito' });
+    } else {
+      res.status(404).json({ message: 'Actividad no encontrada' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar actividad:', error);
+    res.status(500).json({
+      message: 'Error al eliminar la actividad',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
-  guardarActividad
+  guardarActividad,
+  eliminarActividad
 };
