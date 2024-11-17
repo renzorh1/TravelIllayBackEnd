@@ -1,5 +1,9 @@
 // controllers/itinerarioController.js
-const Itinerario = require('../models/Itinerario'); // Importa el modelo
+const sql = require('mssql');
+const config = require('../config/database');
+const Usuario = require('../models/Usuario');
+const Actividad = require('../models/Actividad');
+const Itinerario = require('../models/Itinerario');
 const moment = require('moment'); // Importa moment para manejar el formato de la fecha
 const ItinerarioActividad = require('../models/itinerario_actividad'); // Asegúrate de que la ruta sea correcta
 // Crear un nuevo itinerario
@@ -141,4 +145,122 @@ const eliminarItinerario = async (req, res) => {
     }
 };
 
-module.exports = { crearItinerario, eliminarUltimoItinerario, obtenerUltimoItinerarioId, obtenerItinerariosPorUsuario, eliminarItinerario };
+const crearItinerarioAutomatico = async (req, res) => {
+    try {
+        const { usuario_id, fecha } = req.body;
+
+        // 1. Obtener usuario y sus preferencias
+        const usuario = await Usuario.findByPk(usuario_id);
+        if (!usuario) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        const actividades_favoritas = JSON.parse(usuario.actividades_favoritas); // Extraer actividades favoritas
+        const horaInicioPreferida = usuario.hora_inicio_preferida; // Extraer hora de inicio preferida
+        const horaFinPreferida = usuario.hora_fin_preferida; // Extraer hora de fin preferida
+
+        // 2. Buscar actividades que coincidan con las preferencias
+        const actividades = await Actividad.findAll({
+            where: {
+                tipo: actividades_favoritas, // Coincide con actividades favoritas
+            },
+            order: [['calificacion', 'DESC']] // Ordenar por calificación
+        });
+
+        if (!actividades.length) {
+            return res.status(404).json({ success: false, message: 'No se encontraron actividades que coincidan con las preferencias' });
+        }
+
+        // 3. Generar itinerario
+        const nuevoItinerario = await Itinerario.create({
+            usuario_id,
+            nombre: `Itinerario del ${fecha || new Date().toISOString().split('T')[0]}`,
+            fecha_creacion: new Date(),
+            es_activo: false // Inactivo hasta que el usuario lo acepte
+        });
+
+        // 4. Asignar actividades al itinerario
+        let horaInicio = new Date(`${fecha || new Date().toISOString().split('T')[0]}T${horaInicioPreferida}`);
+        const horaFin = new Date(`${fecha || new Date().toISOString().split('T')[0]}T${horaFinPreferida}`);
+        const actividadesAsignadas = [];
+
+        for (const actividad of actividades) {
+            if (horaInicio >= horaFin) break; // No agregar más actividades si supera el horario final
+
+            actividadesAsignadas.push({
+                itinerario_id: nuevoItinerario.id,
+                actividad_id: actividad.id,
+                horario_asignado: horaInicio.toISOString(),
+            });
+
+            horaInicio = new Date(horaInicio.getTime() + 1 * 60 * 60 * 1000); // Avanzar 1 hora (puedes ajustar según duración)
+        }
+
+        // Guardar las actividades en la tabla intermedia
+        await ActividadItinerario.bulkCreate(actividadesAsignadas);
+
+        res.status(201).json({
+            success: true,
+            message: 'Itinerario generado automáticamente. Pendiente de aceptación.',
+            data: {
+                itinerario: nuevoItinerario,
+                actividades: actividadesAsignadas
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error al crear itinerario automático' });
+    }
+};
+
+const aceptarItinerario = async (req, res) => {
+    try {
+        const { itinerario_id } = req.body;
+
+        // Buscar el itinerario por su ID
+        const itinerario = await Itinerario.findByPk(itinerario_id);
+        if (!itinerario) {
+            return res.status(404).json({ success: false, message: 'Itinerario no encontrado' });
+        }
+
+        // Marcar el itinerario como activo
+        itinerario.es_activo = true;
+        await itinerario.save();
+
+        res.status(200).json({ success: true, message: 'Itinerario aceptado', data: itinerario });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error al aceptar el itinerario' });
+    }
+};
+
+const rechazarItinerario = async (req, res) => {
+    try {
+        const { itinerario_id } = req.body;
+
+        // Buscar el itinerario por su ID
+        const itinerario = await Itinerario.findByPk(itinerario_id);
+        if (!itinerario) {
+            return res.status(404).json({ success: false, message: 'Itinerario no encontrado' });
+        }
+
+        // Eliminar el itinerario
+        await itinerario.destroy();
+
+        res.status(200).json({ success: true, message: 'Itinerario rechazado y eliminado' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error al rechazar el itinerario' });
+    }
+};
+
+module.exports = { 
+    crearItinerario, 
+    eliminarUltimoItinerario, 
+    obtenerUltimoItinerarioId, 
+    obtenerItinerariosPorUsuario, 
+    eliminarItinerario,
+    crearItinerarioAutomatico,
+    aceptarItinerario,
+    rechazarItinerario
+};
