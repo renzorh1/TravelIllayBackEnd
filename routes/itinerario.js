@@ -1,7 +1,7 @@
 // routes/itinerario.js
 const express = require('express');
 const router = express.Router();
-const {crearItinerario, crearItinerarioAutomatico, aceptarItinerario, rechazarItinerario } = require('../controllers/itinerarioController');
+const {crearItinerario, crearItinerarioAutomatico, aceptarItinerario, rechazarItinerario,cambiarNombreItinerario } = require('../controllers/itinerarioController');
 const itinerarioController = require('../controllers/itinerarioController');
 const eliminarItinerario = require('../controllers/itinerarioController');
 
@@ -27,5 +27,8 @@ router.post('/crear-automatico/aceptar', aceptarItinerario);
 
 // Ruta para rechazar un itinerario sugerido
 router.post('/crear-automatico/rechazar', rechazarItinerario);
+
+router.put('/itinerario/:itinerario_id/cambiar-nombre', cambiarNombreItinerario);
+
 
 module.exports = router;
