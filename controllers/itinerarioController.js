@@ -3,9 +3,170 @@ const config = require('../config/database');
 const Usuario = require('../models/Usuario');
 const Actividad = require('../models/Actividad');
 const Itinerario = require('../models/Itinerario');
-const moment = require('moment'); // Importa moment para manejar el formato de la fecha
-const ItinerarioActividad = require('../models/itinerario_actividad'); // Asegúrate de que la ruta sea correcta
-// Crear un nuevo itinerario
+const moment = require('moment');
+const ItinerarioActividad = require('../models/Itinerario_Actividad');
+const axios = require('axios');
+
+// Coordenadas de Lima, Perú
+const limaLocation = {
+    lat: -12.0464,
+    lng: -77.0428
+};
+
+// Radio en metros
+const radius = 10000; // 10 km
+
+// Tu clave de API de Google
+const API_KEY = 'AIzaSyArsAuOR7CjgswV3dfbosbjsqAvfc8m0ws';
+
+// Función para hacer la solicitud a Google Places con un manejo básico de paginación
+const fetchPlacesByType = async (type, nextPageToken = null) => {
+    const params = {
+        location: `${limaLocation.lat},${limaLocation.lng}`,
+        radius: radius,
+        key: API_KEY,
+        type: type,
+        pagetoken: nextPageToken || undefined,
+        limit: 10
+    };
+
+    try {
+        const response = await axios.get('https://maps.googleapis.com/maps/api/place/nearbysearch/json', { params });
+        return response.data;
+    } catch (error) {
+        console.error(`Error al obtener lugares de tipo ${type}:`, error.message);
+        throw new Error(`No se pudo obtener lugares de tipo ${type}`);
+    }
+};
+
+// Función para obtener todos los lugares de un tipo específico en paralelo (limitando las solicitudes)
+const getAllPlacesByType = async (types) => {
+    if (!Array.isArray(types)) {
+        throw new Error('Se esperaba un arreglo de tipos de actividad');
+    }
+
+    try {
+        const typesToFetch = types.slice(0, 5); // Limitar a 5 tipos de actividades
+        const promises = typesToFetch.map(type => fetchPlacesByType(type));
+        const results = await Promise.all(promises);
+        return results.flatMap(result => result.results); // Aplanar los resultados
+    } catch (error) {
+        console.error('Error al obtener lugares:', error.message);
+        throw new Error('Error al obtener lugares');
+    }
+};
+
+const crearItinerarioAutomatico = async (req, res) => {
+    const { usuario_id, fecha } = req.body;
+
+    if (!usuario_id || !fecha) {
+        return res.status(400).json({ error: 'Faltan parámetros necesarios: usuario_id o fecha.' });
+    }
+
+    try {
+        // Verificar si el usuario existe
+        const usuario = await Usuario.findByPk(usuario_id);
+        if (!usuario) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Crear el itinerario
+        const nuevoItinerario = await Itinerario.create({
+            usuario_id,
+            nombre: "Itinerario Automático",
+            fecha_creacion: moment().toISOString(),
+            es_activo: true
+        });
+
+        // Definir rango de horas para actividades
+        const inicioRango = Math.floor(Math.random() * (10 - 6 + 1)) + 6; // Rango de 6 a 10 horas
+        const finRango = Math.floor(Math.random() * (22 - 18 + 1)) + 18; // Rango de 18 a 22 horas
+        const horaInicioRango = `${inicioRango}:00:00`;
+        const horaFinRango = `${finRango}:00:00`;
+
+        // Obtener todos los lugares en paralelo
+        const types = ["restaurant", "park", "museum", "library"];
+        const allPlaces = await getAllPlacesByType(types);
+        const tiposValidos = ['restaurant', 'park', 'museum', 'library'];
+
+        const transformedResults = allPlaces.map(place => {
+            const tipo = place.types.find(t => tiposValidos.includes(t));
+            return {
+                nombre: place.name || 'Nombre no disponible',
+                calificacion: place.rating || 3.3,
+                tipo: tipo,
+                latitud: place.geometry.location.lat,
+                longitud: place.geometry.location.lng
+            };
+        });
+
+        const filteredResults = transformedResults.filter(result => result.tipo);
+        if (filteredResults.length < 4) {
+            return res.status(404).json({ error: 'No hay suficientes actividades disponibles para completar el itinerario' });
+        }
+
+        // Generar horarios de actividades
+        const horarios = [];
+        const totalActividades = 4;
+        const intervalo = Math.floor((finRango - inicioRango) * 60 / totalActividades); // Dividir el rango entre actividades
+        let horaActual = moment(`${fecha}T${horaInicioRango}`, 'YYYY-MM-DDTHH:mm:ss');
+
+        for (let i = 0; i < totalActividades; i++) {
+            const siguienteHora = horaActual.clone().add(intervalo, 'minutes');
+            horarios.push({
+                horaInicio: horaActual.format('HH:mm:ss'),
+                horaFin: siguienteHora.format('HH:mm:ss')
+            });
+            horaActual = siguienteHora;
+        }
+
+        horarios[0].horaInicio = horaInicioRango; // Asegurar que la primera actividad comience al inicio exacto
+        horarios[totalActividades - 1].horaFin = horaFinRango; // Asegurar que la última termine al final exacto
+
+        // Crear actividades
+        const setAddedActivities = new Set();
+        const createdActivities = [];
+
+        for (let i = 0; i < totalActividades; i++) {
+            const randomActivity = filteredResults[Math.floor(Math.random() * filteredResults.length)];
+            if (setAddedActivities.has(randomActivity.nombre)) continue;
+
+            setAddedActivities.add(randomActivity.nombre);
+
+            const actividadGuardada = await Actividad.create({
+                nombre: randomActivity.nombre,
+                calificacion: randomActivity.calificacion,
+                tipo: randomActivity.tipo,
+                latitud: randomActivity.latitud,
+                longitud: randomActivity.longitud,
+                hora_inicio_preferida: horarios[i].horaInicio,
+                hora_fin_preferida: horarios[i].horaFin
+            });
+
+            const nuevaRelacion = await ItinerarioActividad.create({
+                itinerario_id: nuevoItinerario.id,
+                actividad_id: actividadGuardada.id,
+                horario_asignado: horarios[i].horaInicio
+            });
+
+            createdActivities.push({
+                itinerario_id: nuevaRelacion.itinerario_id,
+                actividad_id: nuevaRelacion.actividad_id,
+                horario_asignado: nuevaRelacion.horario_asignado
+            });
+        }
+
+        res.status(201).json({
+            message: 'Itinerario automático creado con 4 actividades.',
+            itinerario: nuevoItinerario,
+            actividades: createdActivities
+        });
+    } catch (error) {
+        console.error('Error al crear itinerario automático:', error.message);
+        res.status(500).json({ error: `Error al crear itinerario automático: ${error.message}` });
+    }
+};
+
 const crearItinerario = async (req, res) => {
     const { usuario_id, nombre } = req.body;
     const fecha_creacion = moment().toISOString();
@@ -144,73 +305,6 @@ const eliminarItinerario = async (req, res) => {
     }
 };
 
-const crearItinerarioAutomatico = async (req, res) => {
-    try {
-        const { usuario_id, fecha } = req.body;
-
-        // 1. Obtener usuario y sus preferencias
-        const usuario = await Usuario.findByPk(usuario_id);
-        if (!usuario) {
-            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
-        }
-
-        const actividades_favoritas = JSON.parse(usuario.actividades_favoritas); // Extraer actividades favoritas
-        const horaInicioPreferida = usuario.hora_inicio_preferida; // Extraer hora de inicio preferida
-        const horaFinPreferida = usuario.hora_fin_preferida; // Extraer hora de fin preferida
-
-        // 2. Buscar actividades que coincidan con las preferencias
-        const actividades = await Actividad.findAll({
-            where: {
-                tipo: actividades_favoritas, // Coincide con actividades favoritas
-            },
-            order: [['calificacion', 'DESC']] // Ordenar por calificación
-        });
-
-        if (!actividades.length) {
-            return res.status(404).json({ success: false, message: 'No se encontraron actividades que coincidan con las preferencias' });
-        }
-
-        // 3. Generar itinerario
-        const nuevoItinerario = await Itinerario.create({
-            usuario_id,
-            nombre: `Itinerario del ${fecha || new Date().toISOString().split('T')[0]}`,
-            fecha_creacion: new Date(),
-            es_activo: false // Inactivo hasta que el usuario lo acepte
-        });
-
-        // 4. Asignar actividades al itinerario
-        let horaInicio = new Date(`${fecha || new Date().toISOString().split('T')[0]}T${horaInicioPreferida}`);
-        const horaFin = new Date(`${fecha || new Date().toISOString().split('T')[0]}T${horaFinPreferida}`);
-        const actividadesAsignadas = [];
-
-        for (const actividad of actividades) {
-            if (horaInicio >= horaFin) break; // No agregar más actividades si supera el horario final
-
-            actividadesAsignadas.push({
-                itinerario_id: nuevoItinerario.id,
-                actividad_id: actividad.id,
-                horario_asignado: horaInicio.toISOString(),
-            });
-
-            horaInicio = new Date(horaInicio.getTime() + 1 * 60 * 60 * 1000); // Avanzar 1 hora (puedes ajustar según duración)
-        }
-
-        // Guardar las actividades en la tabla intermedia
-        await ActividadItinerario.bulkCreate(actividadesAsignadas);
-
-        res.status(201).json({
-            success: true,
-            message: 'Itinerario generado automáticamente. Pendiente de aceptación.',
-            data: {
-                itinerario: nuevoItinerario,
-                actividades: actividadesAsignadas
-            }
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error al crear itinerario automático' });
-    }
-};
 
 const aceptarItinerario = async (req, res) => {
     try {
