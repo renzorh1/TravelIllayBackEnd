@@ -4,6 +4,7 @@ const config = require('../config/database');
 const Usuario = require('../models/Usuario');
 const Actividad = require('../models/Actividad');
 const Itinerario = require('../models/Itinerario');
+const { getFilteredPlaces } = require('./googlePlacesController');
 const moment = require('moment'); // Importa moment para manejar el formato de la fecha
 const ItinerarioActividad = require('../models/itinerario_actividad'); // Asegúrate de que la ruta sea correcta
 // Crear un nuevo itinerario
@@ -149,69 +150,122 @@ const crearItinerarioAutomatico = async (req, res) => {
     try {
         const { usuario_id, fecha } = req.body;
 
-        // 1. Obtener usuario y sus preferencias
+        // Paso 1: Obtener usuario y preferencias
         const usuario = await Usuario.findByPk(usuario_id);
         if (!usuario) {
             return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
         }
 
-        const actividades_favoritas = JSON.parse(usuario.actividades_favoritas); // Extraer actividades favoritas
-        const horaInicioPreferida = usuario.hora_inicio_preferida; // Extraer hora de inicio preferida
-        const horaFinPreferida = usuario.hora_fin_preferida; // Extraer hora de fin preferida
-
-        // 2. Buscar actividades que coincidan con las preferencias
-        const actividades = await Actividad.findAll({
-            where: {
-                tipo: actividades_favoritas, // Coincide con actividades favoritas
-            },
-            order: [['calificacion', 'DESC']] // Ordenar por calificación
-        });
-
-        if (!actividades.length) {
-            return res.status(404).json({ success: false, message: 'No se encontraron actividades que coincidan con las preferencias' });
+        let actividades_favoritas;
+        try {
+            actividades_favoritas = JSON.parse(usuario.actividades_favoritas);
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                message: 'Error al parsear las actividades favoritas del usuario.',
+                details: error.message
+            });
         }
 
-        // 3. Generar itinerario
-        const nuevoItinerario = await Itinerario.create({
-            usuario_id,
-            nombre: `Itinerario del ${fecha || new Date().toISOString().split('T')[0]}`,
-            fecha_creacion: new Date(),
-            es_activo: false // Inactivo hasta que el usuario lo acepte
-        });
+        const horaInicioPreferida = usuario.hora_inicio_preferida;
+        const horaFinPreferida = usuario.hora_fin_preferida;
 
-        // 4. Asignar actividades al itinerario
+        // Paso 2: Buscar lugares usando Google Places
+        let actividades = [];
+        for (const tipo of actividades_favoritas) {
+            try {
+                const lugares = await getFilteredPlaces({ query: { types: tipo } });
+                actividades = [...actividades, ...lugares];
+            } catch (error) {
+                console.error('Error al buscar lugares con Google Places:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error al buscar lugares con Google Places',
+                    details: error.message
+                });
+            }
+        }
+
+        if (!actividades.length) {
+            return res.status(404).json({
+                success: false,
+                message: 'No se encontraron lugares para las preferencias del usuario.'
+            });
+        }
+
+        // Ordenar actividades por calificación
+        actividades.sort((a, b) => b.calificacion - a.calificacion);
+
+        // Paso 3: Crear el itinerario
+        let nuevoItinerario;
+        try {
+            nuevoItinerario = await Itinerario.create({
+                usuario_id,
+                nombre: `Itinerario del ${fecha || new Date().toISOString().split('T')[0]}`,
+                fecha_creacion: new Date(),
+                es_activo: true
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: 'Error al crear el itinerario.',
+                details: error.message
+            });
+        }
+
+        // Paso 4: Asignar actividades al itinerario
         let horaInicio = new Date(`${fecha || new Date().toISOString().split('T')[0]}T${horaInicioPreferida}`);
         const horaFin = new Date(`${fecha || new Date().toISOString().split('T')[0]}T${horaFinPreferida}`);
         const actividadesAsignadas = [];
 
-        for (const actividad of actividades) {
+        for (const actividad of actividades.slice(0, 4)) {
             if (horaInicio >= horaFin) break; // No agregar más actividades si supera el horario final
 
             actividadesAsignadas.push({
                 itinerario_id: nuevoItinerario.id,
-                actividad_id: actividad.id,
-                horario_asignado: horaInicio.toISOString(),
+                Nombre: actividad.nombre,
+                Tipo: actividad.tipo,
+                Lugar: actividad.nombre,
+                Latitud: actividad.latitud,
+                Longitud: actividad.longitud,
+                Calificacion: actividad.calificacion,
+                HoraInicio: horaInicio.toISOString(),
+                HoraFin: new Date(horaInicio.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+                ImagenUrl: actividad.imagen || 'No disponible'
             });
 
-            horaInicio = new Date(horaInicio.getTime() + 1 * 60 * 60 * 1000); // Avanzar 1 hora (puedes ajustar según duración)
+            horaInicio = new Date(horaInicio.getTime() + 2 * 60 * 60 * 1000); // Incrementar 2 horas
         }
 
-        // Guardar las actividades en la tabla intermedia
-        await ActividadItinerario.bulkCreate(actividadesAsignadas);
+        // Guardar actividades
+        try {
+            await ActividadesItinerario.bulkCreate(actividadesAsignadas);
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: 'Error al guardar actividades en el itinerario.',
+                details: error.message
+            });
+        }
 
         res.status(201).json({
             success: true,
-            message: 'Itinerario generado automáticamente. Pendiente de aceptación.',
+            message: 'Itinerario generado automáticamente.',
             data: {
                 itinerario: nuevoItinerario,
                 actividades: actividadesAsignadas
             }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error al crear itinerario automático' });
+        console.error('Error general al crear itinerario automático:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error general al crear itinerario automático',
+            details: error.message
+        });
     }
 };
+
 
 const aceptarItinerario = async (req, res) => {
     try {
