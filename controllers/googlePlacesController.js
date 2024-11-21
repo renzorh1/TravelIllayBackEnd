@@ -10,7 +10,7 @@ const limaLocation = {
 const radius = 10000; // 10 km
 
 // Tu clave de API
-const API_KEY = 'AIzaSyDr1xH61ZEU3KeMKtAiK_BxbsH7tPNtR-U';
+const API_KEY = 'AIzaSyArsAuOR7CjgswV3dfbosbjsqAvfc8m0ws';
 
 // Mapeo de tipos
 const typeMapping = {

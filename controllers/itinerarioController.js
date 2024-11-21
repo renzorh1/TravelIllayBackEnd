@@ -254,6 +254,36 @@ const rechazarItinerario = async (req, res) => {
     }
 };
 
+const cambiarNombreItinerario = async (req, res) => {
+    console.log('Controlador alcanzado'); // Para verificar si llega aquí
+    const { itinerario_id } = req.params;
+    const { nuevo_nombre } = req.body;
+
+    try {
+        const itinerario = await Itinerario.findByPk(itinerario_id);
+
+        if (!itinerario) {
+            return res.status(404).json({ success: false, message: 'Itinerario no encontrado' });
+        }
+
+        itinerario.nombre = nuevo_nombre;
+        await itinerario.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Nombre del itinerario actualizado',
+            data: itinerario,
+        });
+    } catch (error) {
+        console.error('Error al cambiar el nombre del itinerario:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al cambiar el nombre del itinerario',
+            details: error.message,
+        });
+    }
+};
+
 module.exports = { 
     crearItinerario, 
     eliminarUltimoItinerario, 
@@ -262,5 +292,6 @@ module.exports = {
     eliminarItinerario,
     crearItinerarioAutomatico,
     aceptarItinerario,
-    rechazarItinerario
+    rechazarItinerario,
+    cambiarNombreItinerario
 };

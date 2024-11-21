@@ -1,4 +1,6 @@
-
-# Obtener actividades de un itinerario por ID
-GET http://localhost:3000/api/itinerarioactividad/itinerarios/20/actividades
+PUT http://localhost:3000/api/itinerarios/itinerario/13/cambiar-nombre
 Content-Type: application/json
+
+{
+    "nuevo_nombre": "Nombre actualizado"
+}
