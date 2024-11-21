@@ -14,8 +14,8 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
     // Crear preferencias predeterminadas
-    const actividadesFavoritas = ["Restaurantes", "Parques", "Museos", "Librería"];
-    
+    const actividadesFavoritas = ["restaurant", "park", "museum", "library"];
+
     // Crear nuevo usuario
     const newUser = await Usuario.create({
       nombre,

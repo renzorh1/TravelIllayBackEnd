@@ -36,8 +36,9 @@ const Usuario = sequelize.define('Usuario', {
   actividades_favoritas: {
     type: DataTypes.TEXT,
     allowNull: false,
-    defaultValue: JSON.stringify(["Restaurantes", "Parques", "Museos", "Librería"]),
+    defaultValue: JSON.stringify(["restaurant", "park", "museum", "library"]),
   },
+
   hora_inicio_preferida: {
     type: DataTypes.TIME, // Cambiado a TIME
     allowNull: true,

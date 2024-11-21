@@ -10,15 +10,7 @@ const limaLocation = {
 const radius = 10000; // 10 km
 
 // Tu clave de API
-const API_KEY = 'AIzaSyDr1xH61ZEU3KeMKtAiK_BxbsH7tPNtR-U';
-
-// Mapeo de tipos
-const typeMapping = {
-  restaurant: 'Restaurante',
-  park: 'Parque',
-  museum: 'Museo',
-  library: 'Librería',
-};
+const API_KEY = 'AIzaSyArsAuOR7CjgswV3dfbosbjsqAvfc8m0ws';
 
 // Función para hacer la solicitud a Google Places
 const fetchPlacesByType = async (type, nextPageToken = null) => {
@@ -72,13 +64,15 @@ const getNearbyPlaces = async (req, res) => {
     console.log("Todas las actividades:", allPlaces); // Verifica la respuesta aquí
 
     const transformedResults = allPlaces.map(place => {
-      const typeInSpanish = place.types.find(t => types.includes(t));
+      const typeInEnglish = place.types.find(t => types.includes(t));
       return {
         nombre: place.name || 'Nombre no disponible',
         calificacion: place.rating || 3.3,
-        tipo: typeInSpanish ? typeMapping[typeInSpanish] : null, // Usa el mapeo aquí
+        tipo: typeInEnglish,  // Mantener el tipo original en inglés
         latitud: place.geometry.location.lat,
-        longitud: place.geometry.location.lng
+        longitud: place.geometry.location.lng,
+        hora_inicio_preferida: "1970-01-01T07:46:00", // Hora de ejemplo
+        hora_fin_preferida: "1970-01-01T07:46:00"    // Hora de ejemplo
       };
     });
 
@@ -96,6 +90,7 @@ const getNearbyPlaces = async (req, res) => {
   }
 };
 
+// Función para obtener lugares filtrados por tipo
 const getFilteredPlaces = async (req, res) => {
   try {
     // Obtener el parámetro 'types' de la consulta (puede ser uno o varios tipos)
@@ -105,7 +100,7 @@ const getFilteredPlaces = async (req, res) => {
     const requestedTypes = types ? types.split(',') : ['restaurant', 'park', 'museum', 'library'];
     
     // Validar que los tipos solicitados sean válidos
-    const validTypes = requestedTypes.filter(type => Object.keys(typeMapping).includes(type));
+    const validTypes = requestedTypes.filter(type => ['restaurant', 'park', 'museum', 'library'].includes(type));
 
     if (validTypes.length === 0) {
       return res.status(400).json({ message: 'Debes especificar al menos un tipo válido.' });
@@ -122,13 +117,15 @@ const getFilteredPlaces = async (req, res) => {
     console.log("Todas las actividades:", allPlaces); // Verifica la respuesta aquí
 
     const transformedResults = allPlaces.map(place => {
-      const typeInSpanish = place.types.find(t => validTypes.includes(t));
+      const typeInEnglish = place.types.find(t => validTypes.includes(t));
       return {
         nombre: place.name || 'Nombre no disponible',
         calificacion: place.rating || 3.3,
-        tipo: typeInSpanish ? typeMapping[typeInSpanish] : null,
+        tipo: typeInEnglish,  // Mantener el tipo original en inglés
         latitud: place.geometry.location.lat,
-        longitud: place.geometry.location.lng
+        longitud: place.geometry.location.lng,
+        hora_inicio_preferida: "1970-01-01T07:46:00", // Hora de ejemplo
+        hora_fin_preferida: "1970-01-01T07:46:00"    // Hora de ejemplo
       };
     });
 
@@ -146,6 +143,7 @@ const getFilteredPlaces = async (req, res) => {
   }
 };
 
+// Función para obtener actividad por nombre
 const getActivityByName = async (req, res) => {
   try {
     const { name } = req.query; // Obtener el nombre de la actividad de la consulta
@@ -174,9 +172,11 @@ const getActivityByName = async (req, res) => {
     const transformedResult = {
       nombre: activity.name || 'Nombre no disponible',
       calificacion: activity.rating || 3.3,
-      tipo: typeMapping[activity.types.find(t => types.includes(t))] || null,
+      tipo: activity.types.find(t => types.includes(t)),  // Mantener el tipo original en inglés
       latitud: activity.geometry.location.lat,
-      longitud: activity.geometry.location.lng
+      longitud: activity.geometry.location.lng,
+      hora_inicio_preferida: "1970-01-01T07:46:00", // Hora de ejemplo
+      hora_fin_preferida: "1970-01-01T07:46:00"    // Hora de ejemplo
     };
 
     // Enviar la actividad encontrada como respuesta

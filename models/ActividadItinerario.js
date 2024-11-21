@@ -16,7 +16,7 @@ const ActividadItinerario = sequelize.define('ActividadItinerario', {
     type: DataTypes.STRING(50),
     allowNull: false,
     validate: {
-      isIn: [['Restaurantes', 'Parques', 'Museos', 'Eventos', 'Clubes']]
+      isIn: [['restaurant', 'park', 'museum', 'library']]
     }
   },
   Lugar: {
