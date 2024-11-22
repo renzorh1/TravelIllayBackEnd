@@ -62,6 +62,7 @@ const crearItinerarioAutomatico = async (req, res) => {
     if (!usuario_id || !fecha) {
         return res.status(400).json({ error: 'Faltan parámetros necesarios: usuario_id o fecha.' });
     }
+    
 
     try {
         // Verificar si el usuario existe

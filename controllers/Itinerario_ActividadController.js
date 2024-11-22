@@ -1,8 +1,8 @@
 
 const Itinerario = require('../models/Itinerario'); // Modelo del itinerario
 const Actividad = require('../models/Actividad'); // Modelo de la actividad
-const Itinerario_Actividad = require('../models/Itinerario_Actividad')
-//const ItinerarioActividad = require('../models/Itinerario_Actividad');
+const ItinerarioActividad = require('../models/Itinerario_Actividad');
+
 
 
 
