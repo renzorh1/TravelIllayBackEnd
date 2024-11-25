@@ -90,7 +90,7 @@ const obtenerActividadesDeItinerario = async (req, res) => {
     }
 };
 
-// Exportar la función
+// Exportar la función 
 module.exports = {
    
     guardarRelacionItinerarioActividad,

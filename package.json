@@ -23,5 +23,9 @@
     "sequelize": "^6.37.3",
     "tedious": "^18.6.1"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
 }
