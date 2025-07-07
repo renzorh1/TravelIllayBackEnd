@@ -3,7 +3,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 
 // Configura tu conexión a la base de datos
 const sequelize = new Sequelize('TravelIllay', 'sa', '12345678', {
-  host: 'localhost',
+  host: 'DESKTOP-4HBA31A\\SQLEXPRESS',
   dialect: 'mssql',
   dialectOptions: {
     options: {

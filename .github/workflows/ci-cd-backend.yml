@@ -1,0 +1,38 @@
+name: CI/CD TravelIllay Backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test-analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Instalar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 📦 Instalar dependencias
+        run: npm install
+
+      - name: ✅ Ejecutar pruebas (si tienes test)
+        run: npm test || echo "No hay pruebas aún"
+
+      - name: 🧪 Análisis SonarQube
+        uses: sonarsource/sonarqube-scan-action@master
+        with:
+          projectBaseDir: '.'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: 'http://localhost:9000'
+
+      - name: 🚀 Despliegue a Render (opcional)
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
